@@ -155,6 +155,16 @@ Class CleanHTML {
             $node->parentNode->removeChild($node);
         }
 
+        // 4: remove obscure paragraphs inside line items (google docs)
+        foreach ($xp->query('//li/p') as $node) {
+            $sibling = $node->firstChild;
+            do {
+                $next = $sibling->nextSibling;
+                $node->parentNode->insertBefore($sibling, $node);
+            } while ($sibling = $next);
+            $node->parentNode->removeChild($node);
+        }
+
         // -- Save the contents. Strip out the added tags from loadHTML()
         $xp = new DOMXPath($doc);
         $doc->encoding = 'UTF-8';
