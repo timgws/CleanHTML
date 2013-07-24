@@ -156,7 +156,7 @@ Class CleanHTML {
         }
 
         // 4: remove obscure paragraphs inside line items (google docs)
-        foreach ($xp->query('//li/p') as $node) {
+        foreach ($xp->query('li//p') as $node) {
             $sibling = $node->firstChild;
             do {
                 $next = $sibling->nextSibling;
