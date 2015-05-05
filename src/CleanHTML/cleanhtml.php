@@ -1,7 +1,43 @@
 <?php
+namespace timgws\CleanHTML;
 
 Class CleanHTML {
     private $html;
+
+    private $defaultAllowedTags = 'h1,h2,h3,h4,h5,p,strong,b,ul,ol,li,hr,pre,code';
+
+    private $defaultOptions = array (
+        'images' => false,
+        'italics' => false,
+        'links' => false,
+        'strip' => false,
+        'table' => false,
+    );
+
+    private $options;
+
+    public function __construct($options = null)
+    {
+        $this->options = $this->defaultOptions;
+
+        if (is_array($options)) {
+            $this->setOptions($options);
+        }
+    }
+
+    public function setOptions($settingOptions)
+    {
+        $defaultKeys = array_keys($this->defaultOptions);
+        $settingKeys = array_keys($settingOptions);
+
+        foreach($settingKeys as $_option)
+        {
+            if (!in_array($_option, $defaultKeys))
+                throw new CleanHTMLException("$_option does not exist as a settable option.");
+
+            $this->options[$_option] = $settingOptions[$_option];
+        }
+    }
 
     function CleanHTML ($contents) {
         $this->html = $contents;
