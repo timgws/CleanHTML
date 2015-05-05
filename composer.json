@@ -1,0 +1,25 @@
+{
+    "name": "timgws/cleanhtml",
+    "homepage": "http://github.com/timgws/CleanHTML",
+    "description": "Quickly & Easily clean out HTML text, making sure that only the bare minimum is left behind",
+    "keywords": [ "ajax", "eloquent", "jquery", "laravel", "parser", "query builder", "sql" ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Tim Groeneveld",
+            "email": "tim@timg.ws",
+            "homepage": "http://timg.ws"
+        }
+    ],
+    "autoload": {
+        "psr-4": {"timgws\\": "src/"}
+    },
+    "minimum-stability": "dev",
+    "require": {
+      "ezyang/htmlpurifier": "dev-master"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "4.7.*@dev"
+    }
+}
