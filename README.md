@@ -7,12 +7,18 @@ Making HTML clean since late 2012!
 * HTMLPurifier
 * php-xml
 
+## How to install
+
+```
+    composer require timgws/cleanhtml
+```
+
 ## How to use
 ```php
 
-require 'cleanhtml.php';
-$tidy = new CleanHTML('<p><strong>I need a shower. I am dirty HTML.</strong>');
-$output = $tidy->Clean();
+use timgws\CleanHTML\CleanHTML
+$tidy = new CleanHTML();
+$output = $tidy->clean('<p><strong>I need a shower. I am dirty HTML.</strong>');
 ```
 
 $output should now contain:
