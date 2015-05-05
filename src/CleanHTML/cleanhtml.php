@@ -1,9 +1,8 @@
-<?php
-namespace timgws\CleanHTML;
+<?php namespace timgws\CleanHTML;
 
-Class CleanHTML {
-    private $html;
+use DOMDocument, DOMXPath, HTMLPurifier_Config, HTMLPurifier;
 
+class CleanHTML {
     private $defaultAllowedTags = 'h1,h2,h3,h4,h5,p,strong,b,ul,ol,li,hr,pre,code';
 
     private $defaultOptions = array (
@@ -39,8 +38,9 @@ Class CleanHTML {
         }
     }
 
-    function CleanHTML ($contents) {
-        $this->html = $contents;
+    public function getOptions()
+    {
+        return $this->options;
     }
 
     function Clean(array $options = null) {
@@ -92,18 +92,15 @@ Class CleanHTML {
         }
 
         // 3: Send the tidy html to htmlpurifier
-        if (file_exists('lib/HTMLPurifier/HTMLPurifier.auto.php')) {
-            require_once 'lib/HTMLPurifier/HTMLPurifier.auto.php';
-            $config = HTMLPurifier_Config::createDefault();
-            $config->set('Core.EscapeNonASCIICharacters', false);
-            $config->set('CSS.AllowedProperties', array());
-            $config->set('Core.Encoding', 'utf-8');
-            $config->set('AutoFormat.RemoveEmpty', true);
-            $config->set('AutoFormat.RemoveEmpty.RemoveNbsp', true);
-            $config->set('HTML.Allowed', $allowedTags);
-            $purifier = new HTMLPurifier($config);
-            $output = $purifier->purify($output);
-        }
+        $config = HTMLPurifier_Config::createDefault();
+        $config->set('Core.EscapeNonASCIICharacters', false);
+        $config->set('CSS.AllowedProperties', array());
+        $config->set('Core.Encoding', 'utf-8');
+        $config->set('AutoFormat.RemoveEmpty', true);
+        $config->set('AutoFormat.RemoveEmpty.RemoveNbsp', true);
+        $config->set('HTML.Allowed', $allowedTags);
+        $purifier = new HTMLPurifier($config);
+        $output = $purifier->purify($output);
 
         // 4: Cool, do one more clean to pick up any p/strong etc tags that might have
         // been missed.
