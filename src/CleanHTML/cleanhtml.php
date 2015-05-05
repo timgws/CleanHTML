@@ -13,6 +13,13 @@ class CleanHTML {
         'table' => false,
     );
 
+    private $optionsAdd = array (
+        'images' => ',img[src|alt]',
+        'links' => ',a[href|target]',
+        'italics' => ',em,i',
+        'table' => ',table,tr,td'
+    );
+
     private $options;
 
     public function __construct($options = null)
@@ -43,9 +50,25 @@ class CleanHTML {
         return $this->options;
     }
 
-    function Clean(array $options = null) {
+    private function getAllowedTags()
+    {
+        $allowedTags = $this->defaultAllowedTags;
+
+        foreach ($this->options as $name => $value) {
+            if (isset($this->optionsAdd[$name]) && $value === true) {
+                $allowedTags .= ',' . $this->optionsAdd[$name];
+            }
+        }
+
+        if ($this->options['strip']  == true)
+            $allowedTags = '';
+
+        return $allowedTags;
+    }
+
+    function clean($html) {
         // 0: remove duplicate spaces
-        $no_spaces = preg_replace('@(\s|&nbsp;){2,}@', ' ', $this->html);
+        $no_spaces = preg_replace('@(\s|&nbsp;){2,}@', ' ', $html);
         $no_spaces = preg_replace("/<(\w*)>(\s|&nbsp;)/", '<\1>', $no_spaces);
 
         // Try and replace excel new lines as paragraphs :)
@@ -67,29 +90,7 @@ class CleanHTML {
 
         // 2: First clean of all the obscure tags...
         $output = self::obscureClean($doc, true);
-
-        //
-        //$output = $this->html;
-
-        $allowedTags = 'h1,h2,h3,h4,h5,p,strong,b,ul,ol,li,hr,pre,code';
-
-        // TODO: create a default array, and merge the results.
-        if (is_array($options)) {
-            if (isset($options['images']) && $options['images'] == true)
-                $allowedTags .= ',img[src|alt]';
-
-            if (isset($options['links']) && $options['links']  == true)
-                $allowedTags .= ',a[href|target]';
-
-            if (isset($options['italics']) && $options['italics']  == true)
-                $allowedTags .= ',em,i';
-
-            if (isset($options['table']) && $options['table']  == true)
-                $allowedTags .= ',table,tr,td';
-
-            if (isset($options['strip']) && $options['strip']  == true)
-                $allowedTags = '';
-        }
+        $allowedTags = $this->getAllowedTags();
 
         // 3: Send the tidy html to htmlpurifier
         $config = HTMLPurifier_Config::createDefault();
