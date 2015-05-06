@@ -16,7 +16,7 @@ Making HTML clean since late 2012!
 ## How to use
 ```php
 
-use timgws\CleanHTML\CleanHTML
+use timgws\CleanHTML\CleanHTML;
 $tidy = new CleanHTML();
 $output = $tidy->clean('<p><strong>I need a shower. I am dirty HTML.</strong>');
 ```
