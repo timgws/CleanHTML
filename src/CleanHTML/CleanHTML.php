@@ -1,10 +1,23 @@
 <?php namespace timgws\CleanHTML;
 
-use DOMDocument, DOMXPath, HTMLPurifier_Config, HTMLPurifier;
+use DOMDocument, DOMXPath;
+use HTMLPurifier_Config, HTMLPurifier;
 
+/**
+ * Clean HTML pages, get rid of unnecessary tags.
+ *
+ * Class CleanHTML
+ * @package timgws\CleanHTML
+ */
 class CleanHTML {
+    /**
+     * @var string Tags that will always be allowed by default
+     */
     private $defaultAllowedTags = 'h1,h2,h3,h4,h5,p,strong,b,ul,ol,li,hr,pre,code';
 
+    /**
+     * @var array list of all the options that will by default be initialised with.
+     */
     private $defaultOptions = array (
         'images' => false,
         'italics' => false,
@@ -13,6 +26,9 @@ class CleanHTML {
         'table' => false,
     );
 
+    /**
+     * @var array When an option is set, add this to the default allowed list.
+     */
     private $optionsAdd = array (
         'images' => ',img[src|alt]',
         'links' => ',a[href|target]',
@@ -20,9 +36,16 @@ class CleanHTML {
         'table' => ',table,tr,td'
     );
 
+    /**
+     * @var array the local copy of the options that have been set by the developer using this class
+     */
     private $options;
 
-    public function __construct($options = null)
+    /**
+     * @param array|null $options
+     * @throws CleanHTMLException
+     */
+    public function __construct(array $options = null)
     {
         $this->options = $this->defaultOptions;
 
@@ -31,6 +54,12 @@ class CleanHTML {
         }
     }
 
+    /**
+     * Set a list of options on the class.
+     *
+     * @param $settingOptions
+     * @throws CleanHTMLException
+     */
     public function setOptions($settingOptions)
     {
         $defaultKeys = array_keys($this->defaultOptions);
@@ -45,11 +74,23 @@ class CleanHTML {
         }
     }
 
+    /**
+     * Get the options set on the class.
+     *
+     * This is used by tests to ensure that setting options works as expected.
+     *
+     * @return array the options that are on this class.
+     */
     public function getOptions()
     {
         return $this->options;
     }
 
+    /**
+     * Build the allowed tags string, based on the default allowed tags and options that are set.
+     *
+     * @return string
+     */
     private function getAllowedTags()
     {
         $allowedTags = $this->defaultAllowedTags;
@@ -66,6 +107,12 @@ class CleanHTML {
         return $allowedTags;
     }
 
+    /**
+     * Clean HTML.
+     *
+     * @param $html
+     * @return mixed|string
+     */
     function clean($html) {
         // 0: remove duplicate spaces
         $no_spaces = preg_replace('@(\s|&nbsp;){2,}@', ' ', $html);
@@ -141,7 +188,14 @@ class CleanHTML {
         return $output;
     }
 
-    static function obscureClean(DOMDocument $doc, $first = false) {
+    /**
+     * Custom functions for cleaning out elements that are inside documents that should not be allowed in.
+     * @param DOMDocument $doc
+     * @param bool $first
+     * @return mixed|string
+     */
+    static function obscureClean(DOMDocument $doc, $first = false)
+    {
         // 1: rename h1 tags to h2 tags
         $xp = new DOMXPath($doc);
         $doc->encoding = 'UTF-8';
@@ -150,7 +204,7 @@ class CleanHTML {
             $parent = $node;
             $header = $doc->createElement('h2');
             $parent->parentNode->replaceChild($header, $parent);
-            $header->appendChild($doc->createTextNode( $node->textContent ));
+            $header->appendChild($doc->createTextNode($node->textContent));
         }
 
         // 2: change short <p><strong> pairs to h2 tags
@@ -162,7 +216,7 @@ class CleanHTML {
                     $node->childNodes->item(0)->nodeType == XML_TEXT_NODE) {
                 $header = $doc->createElement('h2');
                 $parent->parentNode->replaceChild($header, $parent);
-                $header->appendChild($doc->createTextNode( $node->textContent ));
+                $header->appendChild($doc->createTextNode($node->textContent));
             }
         }
 
@@ -175,7 +229,7 @@ class CleanHTML {
                     $node->childNodes->item(0)->nodeType == XML_TEXT_NODE) {
                 $header = $doc->createElement('h2');
                 $parent->parentNode->replaceChild($header, $parent);
-                $header->appendChild($doc->createTextNode( $node->textContent ));
+                $header->appendChild($doc->createTextNode($node->textContent));
             }
         }
 
@@ -193,7 +247,9 @@ class CleanHTML {
         // NOTE: Might break. TODO: Fix me.
         $paths_to_clean = array('li//p', 'li/p');
         if (!$first) // for some reason this sometimes causes issues on the first run
+        {
             $paths_to_clean[] = '//li/p';
+        }
 
         foreach ($paths_to_clean as $path) {
             $xp = new DOMXPath($doc);
@@ -207,6 +263,10 @@ class CleanHTML {
             }
         }
 
+        return self::exportHTML($doc);
+    }
+
+    static function exportHTML(DOMDocument $doc) {
         // -- Save the contents. Strip out the added tags from loadHTML()
         $xp = new DOMXPath($doc);
         $doc->encoding = 'UTF-8';
