@@ -273,29 +273,33 @@ class CleanHTML {
         if ( strpos($pee, '<pre') !== false ) {
             $pee_parts = explode( '</pre>', $pee );
             $last_pee = array_pop($pee_parts);
-            $pee = '';
-            $i = 0;
 
-            foreach ( $pee_parts as $pee_part ) {
-                $start = strpos($pee_part, '<pre');
-
-                // Malformed html?
-                if ( $start === false ) {
-                    $pee .= $pee_part;
-                    continue;
-                }
-
-                $name = "<pre wp-pre-tag-$i></pre>";
-                $pre_tags[$name] = substr( $pee_part, $start ) . '</pre>';
-
-                $pee .= substr( $pee_part, 0, $start ) . $name;
-                $i++;
-            }
-
-            $pee .= $last_pee;
+            $pee = self::cleanPeeParts($pee_parts) . $last_pee;
         }
 
         return $pee;
+    }
+
+    static function cleanPeeParts($pee_parts)
+    {
+        $i = 0;
+
+        $pee = '';
+        foreach ( $pee_parts as $pee_part ) {
+            $start = strpos($pee_part, '<pre');
+
+            // Malformed html?
+            if ( $start === false ) {
+                $pee .= $pee_part;
+                continue;
+            }
+
+            $name = "<pre wp-pre-tag-$i></pre>";
+            $pre_tags[$name] = substr( $pee_part, $start ) . '</pre>';
+
+            $pee .= substr( $pee_part, 0, $start ) . $name;
+            $i++;
+        }
     }
 
     /**
