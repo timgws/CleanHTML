@@ -312,7 +312,7 @@ class CleanHTML {
      * @param $pee
      * @return string
      */
-    private function cleanBeforeAutoP($pee)
+    static private function cleanBeforeAutoP($pee)
     {
         if ( trim($pee) === '' )
             return '';
