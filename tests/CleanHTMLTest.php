@@ -85,6 +85,11 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
             '<code>Code is not allowed by default</code>',
             ''
         );
+
+        $this->doSimpleContentTest(
+            '     &nbsp;<b>&nbsp;</b>    <p><span>I blame Microsoft Word for this horribleness.</span></p>',
+            '<p>I blame Microsoft Word for this horribleness.</p>'
+        );
     }
 
     public function testLinksAllowedIfSet() {
@@ -115,8 +120,7 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
 
     public function testAutoP()
     {
-        $input = '
-            <p>
+        $input = '<p>
  <strong>
   <span style="font-size: 14px">
    <span style="color: #006400">
@@ -144,9 +148,12 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
 
         $test   = CleanHTML::autop($input);
         $output = new CleanHTML();
-        $output = $output->Clean($test);
+        $newhtml = $output->Clean($test);
 
-        $this->assertEquals('<h2>This is a Test</h2>', $output);
+        $this->assertEquals('<h2>This is a Test</h2>', $newhtml);
+
+        $newhtml = $output->Clean('<pre href="http://google.com">testing 321</pre>');
+        $this->assertEquals('<pre>testing 321</pre>', $newhtml);
     }
 
     private function doSimpleContentTest($actual, $expected, $options = null)
