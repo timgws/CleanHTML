@@ -113,7 +113,7 @@ class CleanHTML {
      * @param $html
      * @return DOMDocument
      */
-    private function createDOMDocumentFromHTML($html)
+    private function preCleanHTML($html)
     {
         // 0: remove duplicate spaces
         $no_spaces = preg_replace('@(\s|&nbsp;){2,}@', ' ', $html);
@@ -122,9 +122,17 @@ class CleanHTML {
         // Try and replace excel new lines as paragraphs :)
         $no_spaces = preg_replace("|(\s*)?<br />(\s*)?<br />|", "<p>", $no_spaces);
 
-        $content  = '<!DOCTYPE html><meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
+        $content = '<!DOCTYPE html><meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
         $content .= preg_replace("/<(\w*)[^>]*>[\s|&nbsp;]*<\/\\1>/", '', $no_spaces);
         unset($no_spaces);
+
+        return $content;
+    }
+
+    private function createDOMDocumentFromHTML($html, $firstRun = true)
+    {
+        if ($firstRun)
+            $content = $this->preCleanHTML($html);
 
         $doc = new DOMDocument;
         @$doc->loadHTML($content);
