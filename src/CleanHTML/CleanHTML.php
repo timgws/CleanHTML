@@ -257,15 +257,6 @@ class CleanHTML {
         return $output;
     }
 
-    static function cleanDOMNode(DOMNode &$domNode) {
-        foreach ($domNode->childNodes as $node)
-        {
-            if($node->hasChildNodes()) {
-                self::cleanDOMNode($node);
-            }
-        }    
-    }
-
     // The following functions are borrowed from WordPress... Thanks guys!
     /**
       * Newline preservation help function for wpautop
