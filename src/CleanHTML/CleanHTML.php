@@ -298,6 +298,8 @@ class CleanHTML {
             $pee .= substr( $pee_part, 0, $start ) . $name;
             $iteration++;
         }
+
+        return $pee;
     }
 
     /**

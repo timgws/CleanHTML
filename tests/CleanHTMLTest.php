@@ -118,9 +118,9 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
         ));
     }
 
-    public function testAutoP()
+    public function getStringAutoP($messedUp = false)
     {
-        $input = '<p>
+        return '<p>
  <strong>
   <span style="font-size: 14px">
    <span style="color: #006400">
@@ -135,22 +135,36 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
        </span>
       </span>
      </span>
-    </span>
+    </span>' . ( $messedUp ? '<br /><br /><br />' : '') . '
     <span style="color: #006400">
      <span style="font-size: 16px">
       <span style="color: #b22222">Test</span>
-     </span>
+     </span>' . ( $messedUp ? '<pre>lol</pre>' : '') . '
     </span>
    </span>
   </span>
  </strong>
-</p>';
+</p>' . ( $messedUp ? '<pre href="sdf  ">lol</pre>' : '');
+    }
 
-        $test   = CleanHTML::autop($input);
+
+    private function runMessedUpTest($messedUp = false)
+    {
+        $input = $this->getStringAutoP($messedUp);
+
+        $test = CleanHTML::autop($input);
         $output = new CleanHTML();
-        $newhtml = $output->Clean($test);
+        return $output->Clean($test);
 
-        $this->assertEquals('<h2>This is a Test</h2>', $newhtml);
+    }
+
+    public function testMessedUpHTML() {
+        $this->assertEquals('<h2>This is a Test</h2>', $this->runMessedUpTest());
+        $this->assertEquals("<h2>This is a </h2>\n<p>Test\n</p>", $this->runMessedUpTest(true));
+    }
+
+    public function testPreWithHREF() {
+        $output = new CleanHTML();
 
         $newhtml = $output->Clean('<pre href="http://google.com">testing 321</pre>');
         $this->assertEquals('<pre>testing 321</pre>', $newhtml);
