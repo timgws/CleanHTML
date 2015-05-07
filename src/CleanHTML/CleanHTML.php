@@ -108,12 +108,13 @@ class CleanHTML {
     }
 
     /**
-     * Clean HTML.
+     * Create a DOMDocument from a HTML string.
      *
      * @param $html
-     * @return mixed|string
+     * @return DOMDocument
      */
-    function clean($html) {
+    private function createDOMDocumentFromHTML($html)
+    {
         // 0: remove duplicate spaces
         $no_spaces = preg_replace('@(\s|&nbsp;){2,}@', ' ', $html);
         $no_spaces = preg_replace("/<(\w*)>(\s|&nbsp;)/", '<\1>', $no_spaces);
@@ -128,18 +129,12 @@ class CleanHTML {
         $doc = new DOMDocument;
         @$doc->loadHTML($content);
         $doc->encoding = 'UTF-8';
-        $xp = new DOMXPath($doc);
 
-        // 1: remove any of the script tags.
-        foreach ($xp->query('//script') as $node) {
-            $node->parentNode->removeChild($node);
-        }
+        return $doc;
+    }
 
-        // 2: First clean of all the obscure tags...
-        $output = self::obscureClean($doc, true);
-        $allowedTags = $this->getAllowedTags();
-
-        // 3: Send the tidy html to htmlpurifier
+    private function createHTMLPurifier()
+    {
         $config = HTMLPurifier_Config::createDefault();
         $config->set('Core.EscapeNonASCIICharacters', false);
         $config->set('CSS.AllowedProperties', array());
@@ -148,6 +143,30 @@ class CleanHTML {
         $config->set('AutoFormat.RemoveEmpty.RemoveNbsp', true);
         $config->set('HTML.Allowed', $allowedTags);
         $purifier = new HTMLPurifier($config);
+
+        return $purifier;
+    }
+
+    /**
+     * Clean HTML.
+     *
+     * @param $html
+     * @return mixed|string
+     */
+    function clean($html) {
+        $cleaningFunctions = new Methods();
+        $doc = $this->createDOMDocumentFromHTML($html);
+        $xp = new DOMXPath($doc);
+
+        // 1: remove any of the script tags.
+        $doc = $cleaningFunctions->removeScriptTags($doc);
+
+        // 2: First clean of all the obscure tags...
+        $output = self::obscureClean($doc, true);
+        $allowedTags = $this->getAllowedTags();
+
+        // 3: Send the tidy html to htmlpurifier
+        $purifier = $this->createHTMLPurifier();
         $output = $purifier->purify($output);
 
         // 4: Cool, do one more clean to pick up any p/strong etc tags that might have
