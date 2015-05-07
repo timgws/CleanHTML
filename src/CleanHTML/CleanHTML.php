@@ -158,7 +158,6 @@ class CleanHTML {
     function clean($html) {
         $cleaningFunctions = new Methods();
         $doc = $this->createDOMDocumentFromHTML($html);
-        $xp = new DOMXPath($doc);
 
         // 1: remove any of the script tags.
         $doc = $cleaningFunctions->removeScriptTags($doc);
@@ -176,7 +175,6 @@ class CleanHTML {
         $content = '<!DOCTYPE html><meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8">'.$output;
         @$doc->loadHTML($content);
         $doc->encoding = 'UTF-8';
-        $xp = new DOMXPath($doc);
 
         $output = self::obscureClean($doc);
 
@@ -282,7 +280,7 @@ class CleanHTML {
 
     static function cleanPeeParts($pee_parts)
     {
-        $i = 0;
+        $iteration = 0;
 
         $pee = '';
         foreach ( $pee_parts as $pee_part ) {
@@ -294,11 +292,11 @@ class CleanHTML {
                 continue;
             }
 
-            $name = "<pre wp-pre-tag-$i></pre>";
+            $name = "<pre wp-pre-tag-$iteration></pre>";
             $pre_tags[$name] = substr( $pee_part, $start ) . '</pre>';
 
             $pee .= substr( $pee_part, 0, $start ) . $name;
-            $i++;
+            $iteration++;
         }
     }
 
