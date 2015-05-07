@@ -156,6 +156,18 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('<pre>testing 321</pre>', $newhtml);
     }
 
+    /**
+     * Test that line items get cleaned correctly.
+     */
+    public function testCleanLineItem()
+    {
+        $input = '<p><ul><li><p>Content</p></li></ul></p>';
+        $this->doSimpleContentTest(
+            $input,
+            '<ul><li>Content</li></ul>'
+        );
+    }
+
     private function doSimpleContentTest($actual, $expected, $options = null)
     {
         $cleanHTML = new CleanHTML($options);
