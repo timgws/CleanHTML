@@ -135,6 +135,8 @@ class CleanHTML {
 
     private function createHTMLPurifier()
     {
+        $allowedTags = $this->getAllowedTags();
+
         $config = HTMLPurifier_Config::createDefault();
         $config->set('Core.EscapeNonASCIICharacters', false);
         $config->set('CSS.AllowedProperties', array());
@@ -163,7 +165,6 @@ class CleanHTML {
 
         // 2: First clean of all the obscure tags...
         $output = self::obscureClean($doc, true);
-        $allowedTags = $this->getAllowedTags();
 
         // 3: Send the tidy html to htmlpurifier
         $purifier = $this->createHTMLPurifier();
