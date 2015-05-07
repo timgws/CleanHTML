@@ -196,72 +196,25 @@ class CleanHTML {
      */
     static function obscureClean(DOMDocument $doc, $first = false)
     {
-        // 1: rename h1 tags to h2 tags
-        $xp = new DOMXPath($doc);
+        $cleaningFunctions = new Methods();
         $doc->encoding = 'UTF-8';
-        foreach ($xp->query('//h1') as $node) {
-            $parent = $node->parentNode;
-            $parent = $node;
-            $header = $doc->createElement('h2');
-            $parent->parentNode->replaceChild($header, $parent);
-            $header->appendChild($doc->createTextNode($node->textContent));
-        }
+
+        // 1: rename h1 tags to h2 tags
+        $doc = $cleaningFunctions->renameH1TagsToH2($doc);
 
         // 2: change short <p><strong> pairs to h2 tags
-        $xp = new DOMXPath($doc);
-        foreach ($xp->query('//p/strong') as $node) {
-            $parent = $node->parentNode;
-            if ($parent->textContent == $node->textContent &&
-                    str_word_count($node->textContent) <= 8 &&
-                    $node->childNodes->item(0)->nodeType == XML_TEXT_NODE) {
-                $header = $doc->createElement('h2');
-                $parent->parentNode->replaceChild($header, $parent);
-                $header->appendChild($doc->createTextNode($node->textContent));
-            }
-        }
+        $doc = $cleaningFunctions->changeShortBoldToH2($doc);
 
         // Get rid of these annoying <h2><strong> tags that get generated after
         // adding new headers. I tried to share code w/ above p/strong, didn't work
-        $xp = new DOMXPath($doc);
-        foreach ($xp->query('//h2/strong') as $node) {
-            $parent = $node->parentNode;
-            if ($parent->textContent == $node->textContent &&
-                    $node->childNodes->item(0)->nodeType == XML_TEXT_NODE) {
-                $header = $doc->createElement('h2');
-                $parent->parentNode->replaceChild($header, $parent);
-                $header->appendChild($doc->createTextNode($node->textContent));
-            }
-        }
+        $doc = $cleaningFunctions->removeBoldH2Tags($doc);
 
         // 3: remove obscure span stylings
-        foreach ($xp->query('//p/span') as $node) {
-            $sibling = $node->firstChild;
-            do {
-                $next = $sibling->nextSibling;
-                $node->parentNode->insertBefore($sibling, $node);
-            } while ($sibling = $next);
-            $node->parentNode->removeChild($node);
-        }
+        $doc = $cleaningFunctions->removeObscureSpanStylings($doc);
 
         // 4: remove obscure paragraphs inside line items (google docs)
         // NOTE: Might break. TODO: Fix me.
-        $paths_to_clean = array('li//p', 'li/p');
-        if (!$first) // for some reason this sometimes causes issues on the first run
-        {
-            $paths_to_clean[] = '//li/p';
-        }
-
-        foreach ($paths_to_clean as $path) {
-            $xp = new DOMXPath($doc);
-            foreach ($xp->query($path) as $node) {
-                $sibling = $node->firstChild;
-                do {
-                    $next = $sibling->nextSibling;
-                    $node->parentNode->insertBefore($sibling, $node);
-                } while ($sibling = $next);
-                $node->parentNode->removeChild($node);
-            }
-        }
+        $doc = $cleaningFunctions->removeObscureParagraphsInsideLineItems($doc, $first);
 
         return self::exportHTML($doc);
     }
@@ -366,7 +319,7 @@ class CleanHTML {
     static function autop($pee, $br = true) {
         $pre_tags = array();
 
-        $pee = $this->cleanBeforeAutoP($pee);
+        $pee = self::cleanBeforeAutoP($pee);
 
         $pee = preg_replace('|<br />\s*<br />|', "\n\n", $pee);
         // Space things out a little
