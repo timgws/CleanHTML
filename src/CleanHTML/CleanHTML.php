@@ -308,24 +308,12 @@ class CleanHTML {
     }
 
     /**
-      * Replaces double line-breaks with paragraph elements.
-      *
-      * A group of regex replaces used to identify text formatted with newlines and
-      * replace double line-breaks with HTML paragraph tags. The remaining
-      * line-breaks after conversion become <<br />> tags, unless $br is set to '0'
-      * or 'false'.
-      *
-      * @since 0.71
-      *
-      * @from WordPress (trunk) r24026
-      *
-      * @param string $pee The text which has to be formatted.
-      * @param bool $br Optional. If set, this will convert all remaining line-breaks after paragraphing. Default true.
-      * @return string Text which has been converted into correct paragraph tags.
-      */
-    static function autop($pee, $br = true) {
-        $pre_tags = array();
-
+     * Clean up <pre> tags before running autop.
+     * @param $pee
+     * @return string
+     */
+    private function cleanBeforeAutoP($pee)
+    {
         if ( trim($pee) === '' )
             return '';
 
@@ -355,6 +343,30 @@ class CleanHTML {
 
             $pee .= $last_pee;
         }
+
+        return $pee;
+    }
+
+    /**
+      * Replaces double line-breaks with paragraph elements.
+      *
+      * A group of regex replaces used to identify text formatted with newlines and
+      * replace double line-breaks with HTML paragraph tags. The remaining
+      * line-breaks after conversion become <<br />> tags, unless $br is set to '0'
+      * or 'false'.
+      *
+      * @since 0.71
+      *
+      * @from WordPress (trunk) r24026
+      *
+      * @param string $pee The text which has to be formatted.
+      * @param bool $br Optional. If set, this will convert all remaining line-breaks after paragraphing. Default true.
+      * @return string Text which has been converted into correct paragraph tags.
+      */
+    static function autop($pee, $br = true) {
+        $pre_tags = array();
+
+        $pee = $this->cleanBeforeAutoP($pee);
 
         $pee = preg_replace('|<br />\s*<br />|', "\n\n", $pee);
         // Space things out a little
