@@ -101,7 +101,7 @@ class CleanHTML {
             }
         }
 
-        if ($this->options['strip']  == true)
+        if ($this->options['strip'] === true)
             $allowedTags = '';
 
         return $allowedTags;
