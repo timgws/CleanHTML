@@ -259,19 +259,6 @@ class CleanHTML {
 
     // The following functions are borrowed from WordPress... Thanks guys!
     /**
-      * Newline preservation help function for wpautop
-      *
-      * @since 3.1.0
-      * @access private
-      *
-      * @param array $matches preg_replace_callback matches array
-      * @return string
-      */
-    static function _autop_newline_preservation_helper( $matches ) {
-        return str_replace("\n", "<WPPreserveNewline />", $matches[0]);
-    }
-
-    /**
      * Clean up <pre> tags before running autop.
      * @param $pee
      * @return string
@@ -357,7 +344,7 @@ class CleanHTML {
         $pee = preg_replace('!<p>\s*(</?' . $allblocks . '[^>]*>)!', "$1", $pee);
         $pee = preg_replace('!(</?' . $allblocks . '[^>]*>)\s*</p>!', "$1", $pee);
         if ( $br ) {
-            $pee = preg_replace_callback('/<(script|style).*?<\/\\1>/s', 'CleanHTML::_autop_newline_preservation_helper', $pee);
+            $pee = preg_replace_callback('/<(script|style).*?<\/\\1>/s', function() {return str_replace("\n", "<WPPreserveNewline />", $matches[0]);}, $pee);
             $pee = preg_replace('|(?<!<br />)\s*\n|', "<br />\n", $pee); // optionally make line breaks
             $pee = str_replace('<WPPreserveNewline />', "\n", $pee);
         }

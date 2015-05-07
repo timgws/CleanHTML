@@ -113,6 +113,42 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
         ));
     }
 
+    public function testAutoP()
+    {
+        $input = '
+            <p>
+ <strong>
+  <span style="font-size: 14px">
+   <span style="color: #006400">
+     <span style="font-size: 14px">
+      <span style="font-size: 16px">
+       <span style="color: #006400">
+        <span style="font-size: 14px">
+         <span style="font-size: 16px">
+          <span style="color: #006400">This is a </span>
+         </span>
+        </span>
+       </span>
+      </span>
+     </span>
+    </span>
+    <span style="color: #006400">
+     <span style="font-size: 16px">
+      <span style="color: #b22222">Test</span>
+     </span>
+    </span>
+   </span>
+  </span>
+ </strong>
+</p>';
+
+        $test   = CleanHTML::autop($input);
+        $output = new CleanHTML();
+        $output = $output->Clean($test);
+
+        $this->assertEquals('<h2>This is a Test</h2>', $output);
+    }
+
     private function doSimpleContentTest($actual, $expected, $options = null)
     {
         $cleanHTML = new CleanHTML($options);
