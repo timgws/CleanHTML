@@ -182,6 +182,17 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
         );
     }
 
+    /**
+     * Test a conditional inside autop that specifically relates to objects.
+     */
+    public function testObjectScrubbing()
+    {
+        $input = '<p><object><param value="" name=""></object>';
+        $output = CleanHTML::autop($input);
+
+        $this->assertEquals('<p><object><param value="" name=""></object></p>' . "\n", $output);
+    }
+
     private function doSimpleContentTest($actual, $expected, $options = null)
     {
         $cleanHTML = new CleanHTML($options);
