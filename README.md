@@ -31,6 +31,8 @@ $output should now contain:
 Using the Clean function will remove tables, any Javascript or other non-friendly items that
 you might not want to see from user submitted HTML.
 
+If you want to see some examples, the best place to look would be [some of the CleanHTML test](https://github.com/timgws/CleanHTML/blob/master/tests/CleanHTMLTest.php)
+
 ## What does it do?
 1. Removed additional spaces from HTML
 2. Replaces multiple ``<br />`` tags with paragraph tags
