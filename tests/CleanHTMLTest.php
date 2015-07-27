@@ -193,6 +193,15 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals('<p><object><param value="" name=""></object></p>' . "\n", $output);
     }
 
+
+    public function testCleanPeeParts()
+    {
+        $input = array ('</pre>Clean!');
+        $output = CleanHTML::cleanPeeParts($input);
+
+        $this->assertEquals('</pre>Clean!', $output);
+    }
+
     private function doSimpleContentTest($actual, $expected, $options = null)
     {
         $cleanHTML = new CleanHTML($options);
