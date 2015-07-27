@@ -17,7 +17,8 @@
     },
     "minimum-stability": "dev",
     "require": {
-      "php-ext": "*",
+      "ext-SimpleXML": "*",
+      "ext-xml": "*",
       "ezyang/htmlpurifier": "dev-master"
     },
     "require-dev": {
