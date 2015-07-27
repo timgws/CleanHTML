@@ -311,6 +311,44 @@ class CleanHTML {
     }
 
     /**
+     * Return a list of all the blocks that we are going to add a new line after
+     *
+     * @return string
+     */
+    static function allBlocks()
+    {
+        return '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|select|option|form|map|area|blockquote|address|math|style|p|h[1-6]|hr|fieldset|noscript|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
+    }
+
+    /**
+     * Add new lines after a number of different blocks
+     *
+     * This will ensure that the HTML we output isn't in just one long line.
+     * We will also get rid of multiple new lines, as well.
+     *
+     * @see self::autop
+     * @param string $pee the input from autop
+     * @return string
+     *
+     */
+    static private function spaceOutBlocks($pee)
+    {
+        $pee = preg_replace('|<br />\s*<br />|', "\n\n", $pee);
+        // Space things out a little
+        $allblocks = self::allBlocks();
+        $pee = preg_replace('!(<' . $allblocks . '[^>]*>)!', "\n$1", $pee);
+        $pee = preg_replace('!(</' . $allblocks . '>)!', "$1\n\n", $pee);
+        $pee = str_replace(array("\r\n", "\r"), "\n", $pee); // cross-platform newlines
+        if ( strpos($pee, '<object') !== false ) {
+            $pee = preg_replace('|\s*<param([^>]*)>\s*|', "<param$1>", $pee); // no pee inside object/embed
+            $pee = preg_replace('|\s*</embed>\s*|', '</embed>', $pee);
+        }
+        $pee = preg_replace("/\n\n+/", "\n\n", $pee); // take care of duplicates
+
+        return $pee;
+    }
+
+    /**
       * Replaces double line-breaks with paragraph elements.
       *
       * A group of regex replaces used to identify text formatted with newlines and
@@ -330,19 +368,10 @@ class CleanHTML {
         $pre_tags = array();
 
         $pee = self::cleanBeforeAutoP($pee);
+        $pee = self::spaceOutBlocks($pee);
 
-        $pee = preg_replace('|<br />\s*<br />|', "\n\n", $pee);
-        // Space things out a little
-        $allblocks = '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|select|option|form|map|area|blockquote|address|math|style|p|h[1-6]|hr|fieldset|noscript|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
-        $pee = preg_replace('!(<' . $allblocks . '[^>]*>)!', "\n$1", $pee);
-        $pee = preg_replace('!(</' . $allblocks . '>)!', "$1\n\n", $pee);
-        $pee = str_replace(array("\r\n", "\r"), "\n", $pee); // cross-platform newlines
-        if ( strpos($pee, '<object') !== false ) {
-            $pee = preg_replace('|\s*<param([^>]*)>\s*|', "<param$1>", $pee); // no pee inside object/embed
-            $pee = preg_replace('|\s*</embed>\s*|', '</embed>', $pee);
-        }
-        $pee = preg_replace("/\n\n+/", "\n\n", $pee); // take care of duplicates
         // make paragraphs, including one at the end
+        $allblocks = self::allBlocks();
         $pees = preg_split('/\n\s*\n/', $pee, -1, PREG_SPLIT_NO_EMPTY);
         $pee = '';
         foreach ( $pees as $tinkle )
