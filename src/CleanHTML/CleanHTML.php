@@ -168,7 +168,8 @@ class CleanHTML {
      * @param $html
      * @return mixed|string
      */
-    function clean($html) {
+    function clean($html)
+    {
         $cleaningFunctions = new Methods();
         $doc = $this->createDOMDocumentFromHTML($html);
 
@@ -177,26 +178,20 @@ class CleanHTML {
 
         // 2: First clean of all the obscure tags...
         $output = self::obscureClean($doc, true);
-
-        // 3: Send the tidy html to htmlpurifier
-        $purifier = $this->createHTMLPurifier();
-        $output = $purifier->purify($output);
+        $output = $this->purify($output);
 
         // 4: Cool, do one more clean to pick up any p/strong etc tags that might have
         // been missed.
-        $doc = new DOMDocument;
-        $content = self::$blankHTML . $output;
-        @$doc->loadHTML($content);
-        $doc->encoding = 'UTF-8';
+        return $this->finalClean($output);
+    }
 
-        $output = self::obscureClean($doc);
-
+    private function removeLastNewLine($input) {
         // Remove the newline character at the end of the HTML if there is one there.
-        $len = strlen($output);
-        if (substr($output, $len-1, 1) == "\n")
-            $output = substr($output, 0, $len-1);
+        $len = strlen($input);
+        if (substr($input, $len-1, 1) == "\n")
+            return substr($input, 0, $len-1);
 
-        return $output;
+        return $input;
     }
 
     static function changeQuotes($input) {
@@ -266,5 +261,35 @@ class CleanHTML {
         $output = preg_replace("#(\n\s*){2,}#", "\n", $output); // Replace newlines with one
         $output = preg_replace("#\s\s+$#", "", $output); // Multi-spaces condensed
         return $output;
+    }
+
+    /**
+     * Purify HTML
+     *
+     * @param $input
+     * @return string
+     */
+    private function purify($input)
+    {
+        $purifier = $this->createHTMLPurifier();
+        $output = $purifier->purify($input);
+
+        return $output;
+    }
+
+    /**
+     * @param $input
+     * @return string
+     */
+    private function finalClean($input)
+    {
+        $doc = new DOMDocument;
+        $content = self::$blankHTML . $input;
+        @$doc->loadHTML($content);
+        $doc->encoding = 'UTF-8';
+
+        $output = self::obscureClean($doc);
+
+        return $this->removeLastNewLine($output);
     }
 }
