@@ -8,8 +8,11 @@ class ReplaceParagraphElements {
     /**
      * Pre tags should not be touched by autop.
      * Replace pre tags with placeholders and bring them back after autop.
+     *
+     * @param array $pee_parts parts of the HTML to be cleaned
+     * @return string
      */
-    static function cleanPeeParts($pee_parts)
+    static function cleanPeeParts(array $pee_parts)
     {
         $iteration = 0;
 
@@ -40,7 +43,7 @@ class ReplaceParagraphElements {
      */
     static function allBlocks()
     {
-        return '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|select|option|form|map|area|blockquote|address|math|style|p|h[1-6]|hr|fieldset|noscript|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
+        return '(?:table|thead|tfoot|caption|col|colgroup|tbody|tr|td|th|div|dl|dd|dt|ul|ol|li|pre|form|map|area|blockquote|address|math|style|p|h[1-6]|hr|fieldset|legend|section|article|aside|hgroup|header|footer|nav|figure|figcaption|details|menu|summary)';
     }
 
     /**
@@ -59,9 +62,11 @@ class ReplaceParagraphElements {
         $pee = preg_replace('|<br />\s*<br />|', "\n\n", $pee);
         // Space things out a little
         $allblocks = self::allBlocks();
-        $pee = preg_replace('!(<' . $allblocks . '[^>]*>)!', "\n$1", $pee);
-        $pee = preg_replace('!(</' . $allblocks . '>)!', "$1\n\n", $pee);
-        $pee = str_replace(array("\r\n", "\r"), "\n", $pee); // cross-platform newlines
+        $pee = self::addBreaksAroundTags($pee, $allblocks);
+
+        // Standardize newline characters to "\n".
+        $pee = str_replace(array("\r\n", "\r"), "\n", $pee);
+
         if ( strpos($pee, '<object') !== false ) {
             $pee = self::cleanUpObjectTag($pee);
         }
@@ -112,20 +117,45 @@ class ReplaceParagraphElements {
         $pee = '';
         foreach ( $pees as $tinkle )
             $pee .= '<p>' . trim($tinkle, "\n") . "</p>\n";
-        $pee = preg_replace('|<p>\s*</p>|', '', $pee); // under certain strange conditions it could create a P of entirely whitespace
+
+        // Under certain strange conditions it could create a P of entirely whitespace.
+        $pee = preg_replace('|<p>\s*</p>|', '', $pee);
+
+        // Add a closing <p> inside <div>, <address>, or <form> tag if missing.
         $pee = preg_replace('!<p>([^<]+)</(div|address|form)>!', "<p>$1</p></$2>", $pee);
-        $pee = preg_replace('!<p>\s*(</?' . $allblocks . '[^>]*>)\s*</p>!', "$1", $pee); // don't pee all over a tag
-        $pee = preg_replace("|<p>(<li.+?)</p>|", "$1", $pee); // problem with nested lists
+
+        // If an opening or closing block element tag is wrapped in a <p>, unwrap it.
+        $pee = preg_replace('!<p>\s*(</?' . $allblocks . '[^>]*>)\s*</p>!', "$1", $pee);
+
+        // In some cases <li> may get wrapped in <p>, fix them.
+        $pee = preg_replace("|<p>(<li.+?)</p>|", "$1", $pee);
+
+        // If a <blockquote> is wrapped with a <p>, move it inside the <blockquote>.
         $pee = preg_replace('|<p><blockquote([^>]*)>|i', "<blockquote$1><p>", $pee);
         $pee = str_replace('</blockquote></p>', '</p></blockquote>', $pee);
+
+        // If an opening or closing block element tag is preceded by an opening <p> tag, remove it.
         $pee = preg_replace('!<p>\s*(</?' . $allblocks . '[^>]*>)!', "$1", $pee);
+
+        // If an opening or closing block element tag is followed by a closing <p> tag, remove it.
         $pee = preg_replace('!(</?' . $allblocks . '[^>]*>)\s*</p>!', "$1", $pee);
+
+        // Optionally insert line breaks.
         if ( $br ) {
+            // Replace newlines that shouldn't be touched with a placeholder.
             $pee = preg_replace_callback('/<(script|style).*?<\/\\1>/s', function() {return str_replace("\n", "<WPPreserveNewline />", $matches[0]);}, $pee);
-            $pee = preg_replace('|(?<!<br />)\s*\n|', "<br />\n", $pee); // optionally make line breaks
+
+            // Replace any new line characters that aren't preceded by a <br /> with a <br />.
+            $pee = preg_replace('|(?<!<br />)\s*\n|', "<br />\n", $pee);
+
+            // Replace newline placeholders with newlines.
             $pee = str_replace('<WPPreserveNewline />', "\n", $pee);
         }
+
+        // If a <br /> tag is after an opening or closing block tag, remove it.
         $pee = preg_replace('!(</?' . $allblocks . '[^>]*>)\s*<br />!', "$1", $pee);
+
+        // If a <br /> tag is before a subset of opening or closing block tags, remove it.
         $pee = preg_replace('!<br />(\s*</?(?:p|li|div|dl|dd|dt|th|pre|td|ul|ol)[^>]*>)!', '$1', $pee);
         $pee = preg_replace( "|\n</p>$|", '</p>', $pee );
 
@@ -135,7 +165,6 @@ class ReplaceParagraphElements {
         return $pee;
     }
 
-    // The following functions are borrowed from WordPress... Thanks guys!
     /**
      * Clean up <pre> tags before running autop.
      * @param $pee
@@ -152,8 +181,26 @@ class ReplaceParagraphElements {
             $pee_parts = explode( '</pre>', $pee );
             $last_pee = array_pop($pee_parts);
 
-            $pee = ReplaceParagraphElements::cleanPeeParts($pee_parts) . $last_pee;
+            $pee = self::cleanPeeParts($pee_parts) . $last_pee;
         }
+
+        return $pee;
+    }
+
+    /**
+     * @param $pee
+     * @return mixed
+     */
+    private static function addBreaksAroundTags($pee)
+    {
+        // get the list of blocks
+        $allblocks = self::allBlocks();
+
+        // Add a single line break above block-level opening tags.
+        $pee = preg_replace('!(<' . $allblocks . '[^>]*>)!', "\n$1", $pee);
+
+        // Add a double line break below block-level closing tags.
+        $pee = preg_replace('!(</' . $allblocks . '>)!', "$1\n\n", $pee);
 
         return $pee;
     }
