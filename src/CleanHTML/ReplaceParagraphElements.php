@@ -121,18 +121,9 @@ class ReplaceParagraphElements {
         // Under certain strange conditions it could create a P of entirely whitespace.
         $pee = preg_replace('|<p>\s*</p>|', '', $pee);
 
-        // Add a closing <p> inside <div>, <address>, or <form> tag if missing.
-        $pee = preg_replace('!<p>([^<]+)</(div|address|form)>!', "<p>$1</p></$2>", $pee);
-
         // If an opening or closing block element tag is wrapped in a <p>, unwrap it.
         $pee = preg_replace('!<p>\s*(</?' . $allblocks . '[^>]*>)\s*</p>!', "$1", $pee);
-
-        // In some cases <li> may get wrapped in <p>, fix them.
-        $pee = preg_replace("|<p>(<li.+?)</p>|", "$1", $pee);
-
-        // If a <blockquote> is wrapped with a <p>, move it inside the <blockquote>.
-        $pee = preg_replace('|<p><blockquote([^>]*)>|i', "<blockquote$1><p>", $pee);
-        $pee = str_replace('</blockquote></p>', '</p></blockquote>', $pee);
+        $pee = self::fixTagsWrappedInP($pee);
 
         // If an opening or closing block element tag is preceded by an opening <p> tag, remove it.
         $pee = preg_replace('!<p>\s*(</?' . $allblocks . '[^>]*>)!', "$1", $pee);
@@ -142,14 +133,7 @@ class ReplaceParagraphElements {
 
         // Optionally insert line breaks.
         if ( $br ) {
-            // Replace newlines that shouldn't be touched with a placeholder.
-            $pee = preg_replace_callback('/<(script|style).*?<\/\\1>/s', function() {return str_replace("\n", "<WPPreserveNewline />", $matches[0]);}, $pee);
-
-            // Replace any new line characters that aren't preceded by a <br /> with a <br />.
-            $pee = preg_replace('|(?<!<br />)\s*\n|', "<br />\n", $pee);
-
-            // Replace newline placeholders with newlines.
-            $pee = str_replace('<WPPreserveNewline />', "\n", $pee);
+            $pee = self::insertLineBreaks($pee);
         }
 
         // If a <br /> tag is after an opening or closing block tag, remove it.
@@ -201,6 +185,45 @@ class ReplaceParagraphElements {
 
         // Add a double line break below block-level closing tags.
         $pee = preg_replace('!(</' . $allblocks . '>)!', "$1\n\n", $pee);
+
+        return $pee;
+    }
+
+    /**
+     * @param $pee
+     * @return mixed
+     */
+    private static function fixTagsWrappedInP($pee)
+    {
+        // In some cases <li> may get wrapped in <p>, fix them.
+        $pee = preg_replace("|<p>(<li.+?)</p>|", "$1", $pee);
+
+        // If a <blockquote> is wrapped with a <p>, move it inside the <blockquote>.
+        $pee = preg_replace('|<p><blockquote([^>]*)>|i', "<blockquote$1><p>", $pee);
+        $pee = str_replace('</blockquote></p>', '</p></blockquote>', $pee);
+
+        // Add a closing <p> inside <div>, <address>, or <form> tag if missing.
+        $pee = preg_replace('!<p>([^<]+)</(div|address|form)>!', "<p>$1</p></$2>", $pee);
+
+        return $pee;
+    }
+
+    /**
+     * @param $pee
+     * @return mixed
+     */
+    private static function insertLineBreaks($pee)
+    {
+        // Replace newlines that shouldn't be touched with a placeholder.
+        $pee = preg_replace_callback('/<(script|style).*?<\/\\1>/s', function ($matches) {
+            return str_replace("\n", "<WPPreserveNewline />", $matches[0]);
+        }, $pee);
+
+        // Replace any new line characters that aren't preceded by a <br /> with a <br />.
+        $pee = preg_replace('|(?<!<br />)\s*\n|', "<br />\n", $pee);
+
+        // Replace newline placeholders with newlines.
+        $pee = str_replace('<WPPreserveNewline />', "\n", $pee);
 
         return $pee;
     }
