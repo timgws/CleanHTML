@@ -340,10 +340,23 @@ class CleanHTML {
         $pee = preg_replace('!(</' . $allblocks . '>)!', "$1\n\n", $pee);
         $pee = str_replace(array("\r\n", "\r"), "\n", $pee); // cross-platform newlines
         if ( strpos($pee, '<object') !== false ) {
-            $pee = preg_replace('|\s*<param([^>]*)>\s*|', "<param$1>", $pee); // no pee inside object/embed
-            $pee = preg_replace('|\s*</embed>\s*|', '</embed>', $pee);
+            $pee = self::cleanUpObjectTag($pee);
         }
         $pee = preg_replace("/\n\n+/", "\n\n", $pee); // take care of duplicates
+
+        return $pee;
+    }
+
+    /**
+     * Remove spaces that might have been put between object & param tags.
+     *
+     * @param string $pee
+     * @return string
+     */
+    static private function cleanUpObjectTag($pee)
+    {
+        $pee = preg_replace('|\s*<param([^>]*)>\s*|', "<param$1>", $pee); // no pee inside object/embed
+        $pee = preg_replace('|\s*</embed>\s*|', '</embed>', $pee);
 
         return $pee;
     }
