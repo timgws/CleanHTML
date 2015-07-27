@@ -27,6 +27,11 @@ class CleanHTML {
     );
 
     /**
+     * @var string blank HTML with UTF-8 encoding.
+     */
+    private static $blankHTML = '<!DOCTYPE html><meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
+
+    /**
      * @var array When an option is set, add this to the default allowed list.
      */
     private $optionsAdd = array (
@@ -122,7 +127,7 @@ class CleanHTML {
         // Try and replace excel new lines as paragraphs :)
         $no_spaces = preg_replace("|(\s*)?<br />(\s*)?<br />|", "<p>", $no_spaces);
 
-        $content = '<!DOCTYPE html><meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8">';
+        $content = self::$blankHTML;
         $content .= preg_replace("/<(\w*)[^>]*>[\s|&nbsp;]*<\/\\1>/", '', $no_spaces);
         unset($no_spaces);
 
@@ -180,7 +185,7 @@ class CleanHTML {
         // 4: Cool, do one more clean to pick up any p/strong etc tags that might have
         // been missed.
         $doc = new DOMDocument;
-        $content = '<!DOCTYPE html><meta charset="utf-8"><meta http-equiv="Content-Type" content="text/html; charset=utf-8">'.$output;
+        $content = self::$blankHTML . $output;
         @$doc->loadHTML($content);
         $doc->encoding = 'UTF-8';
 
