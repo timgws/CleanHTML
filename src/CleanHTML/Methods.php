@@ -1,13 +1,17 @@
-<?php namespace timgws\CleanHTML;
+<?php
 
-use \DOMDocument, \DOMXPath;
+namespace timgws\CleanHTML;
 
-class Methods {
+use DOMDocument;
+use DOMXPath;
 
+class Methods
+{
     /**
-     * rename h1 tags to h2 tags
+     * rename h1 tags to h2 tags.
      *
      * @param DOMDocument $doc
+     *
      * @return DOMDocument
      */
     public function renameH1TagsToH2(DOMDocument $doc)
@@ -26,9 +30,10 @@ class Methods {
     }
 
     /**
-     * change short <p><strong> pairs to h2 tags
+     * change short <p><strong> pairs to h2 tags.
      *
      * @param DOMDocument $doc
+     *
      * @return DOMDocument
      */
     public function changeShortBoldToH2(DOMDocument $doc)
@@ -54,6 +59,7 @@ class Methods {
      * adding new headers.
      *
      * @param DOMDocument $doc
+     *
      * @return DOMDocument
      */
     public function removeBoldH2Tags(DOMDocument $doc)
@@ -74,9 +80,10 @@ class Methods {
     }
 
     /**
-     * remove obscure span stylings
+     * remove obscure span stylings.
      *
      * @param DOMDocument $doc
+     *
      * @return DOMDocument
      */
     public function removeObscureSpanStylings(DOMDocument $doc)
@@ -95,17 +102,22 @@ class Methods {
     }
 
     /**
-     * remove obscure paragraphs inside line items (google docs)
+     * remove obscure paragraphs inside line items (google docs).
+     *
      * @note Might break.
      * @TODO Fix me.
+     *
      * @param DOMDocument $doc
-     * @param bool $firstRun
+     * @param bool        $firstRun
+     *
      * @return DOMDocument
      */
-    public function removeObscureParagraphsInsideLineItems(DOMDocument $doc, $firstRun = false) {
+    public function removeObscureParagraphsInsideLineItems(DOMDocument $doc, $firstRun = false)
+    {
         $paths_to_clean = array('li//p', 'li/p');
-        if (!$firstRun) // for some reason this sometimes causes issues on the first run
-        {
+        if (!$firstRun) {
+            // for some reason this sometimes causes issues on the first run
+
             $paths_to_clean[] = '//li/p';
         }
 
@@ -128,9 +140,11 @@ class Methods {
      * Remove script tags that might exist inside the document.
      *
      * @param DOMDocument $doc
+     *
      * @return DOMDocument
      */
-    public function removeScriptTags(DOMDocument $doc)  {
+    public function removeScriptTags(DOMDocument $doc)
+    {
         $xp = new DOMXPath($doc);
 
         foreach ($xp->query('//script') as $node) {

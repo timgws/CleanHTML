@@ -1,10 +1,11 @@
 <?php
 
-class HTMLPurifierInstanceTest extends PHPUnit_Framework_TestCase {
+class HTMLPurifierInstanceTest extends PHPUnit_Framework_TestCase
+{
     private $config;
     private $purifier;
 
-    public function testCanLoadHTMLPurifier ()
+    public function testCanLoadHTMLPurifier()
     {
         $this->config = HTMLPurifier_Config::createDefault();
         $this->config->set('Core.EscapeNonASCIICharacters', false);
@@ -17,6 +18,7 @@ class HTMLPurifierInstanceTest extends PHPUnit_Framework_TestCase {
 
     /**
      * Asserts a purification. Good for integration testing.
+     *
      * @param string $input
      * @param string $expect
      */

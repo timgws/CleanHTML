@@ -1,15 +1,19 @@
-<?php namespace timgws\CleanHTML;
+<?php
 
-use DOMDocument, DOMXPath;
-use HTMLPurifier_Config, HTMLPurifier;
+namespace timgws\CleanHTML;
+
+use DOMDocument;
+use DOMXPath;
+use HTMLPurifier_Config;
+use HTMLPurifier;
 
 /**
  * Clean HTML pages, get rid of unnecessary tags.
  *
  * Class CleanHTML
- * @package timgws\CleanHTML
  */
-class CleanHTML {
+class CleanHTML
+{
     /**
      * @var string Tags that will always be allowed by default
      */
@@ -18,7 +22,7 @@ class CleanHTML {
     /**
      * @var array list of all the options that will by default be initialised with.
      */
-    private $defaultOptions = array (
+    private $defaultOptions = array(
         'images' => false,
         'italics' => false,
         'links' => false,
@@ -34,11 +38,11 @@ class CleanHTML {
     /**
      * @var array When an option is set, add this to the default allowed list.
      */
-    private $optionsAdd = array (
+    private $optionsAdd = array(
         'images' => ',img[src|alt]',
         'links' => ',a[href|target]',
         'italics' => ',em,i',
-        'table' => ',table,tr,td'
+        'table' => ',table,tr,td',
     );
 
     /**
@@ -48,6 +52,7 @@ class CleanHTML {
 
     /**
      * @param array|null $options
+     *
      * @throws CleanHTMLException
      */
     public function __construct(array $options = null)
@@ -63,6 +68,7 @@ class CleanHTML {
      * Set a list of options on the class.
      *
      * @param $settingOptions
+     *
      * @throws CleanHTMLException
      */
     public function setOptions($settingOptions)
@@ -70,10 +76,10 @@ class CleanHTML {
         $defaultKeys = array_keys($this->defaultOptions);
         $settingKeys = array_keys($settingOptions);
 
-        foreach($settingKeys as $_option)
-        {
-            if (!in_array($_option, $defaultKeys))
+        foreach ($settingKeys as $_option) {
+            if (!in_array($_option, $defaultKeys)) {
                 throw new CleanHTMLException("$_option does not exist as a settable option.");
+            }
 
             $this->options[$_option] = $settingOptions[$_option];
         }
@@ -102,12 +108,13 @@ class CleanHTML {
 
         foreach ($this->options as $name => $value) {
             if (isset($this->optionsAdd[$name]) && $value === true) {
-                $allowedTags .= ',' . $this->optionsAdd[$name];
+                $allowedTags .= ','.$this->optionsAdd[$name];
             }
         }
 
-        if ($this->options['strip'] === true)
+        if ($this->options['strip'] === true) {
             $allowedTags = '';
+        }
 
         return $allowedTags;
     }
@@ -116,6 +123,7 @@ class CleanHTML {
      * Create a DOMDocument from a HTML string.
      *
      * @param $html
+     *
      * @return DOMDocument
      */
     private function preCleanHTML($html)
@@ -125,7 +133,7 @@ class CleanHTML {
         $no_spaces = preg_replace("/<(\w*)>(\s|&nbsp;)/", '<\1>', $no_spaces);
 
         // Try and replace excel new lines as paragraphs :)
-        $no_spaces = preg_replace("|(\s*)?<br />(\s*)?<br />|", "<p>", $no_spaces);
+        $no_spaces = preg_replace("|(\s*)?<br />(\s*)?<br />|", '<p>', $no_spaces);
 
         $content = self::$blankHTML;
         $content .= preg_replace("/<(\w*)[^>]*>[\s|&nbsp;]*<\/\\1>/", '', $no_spaces);
@@ -136,10 +144,11 @@ class CleanHTML {
 
     private function createDOMDocumentFromHTML($html, $firstRun = true)
     {
-        if ($firstRun)
+        if ($firstRun) {
             $content = $this->preCleanHTML($html);
+        }
 
-        $doc = new DOMDocument;
+        $doc = new DOMDocument();
         @$doc->loadHTML($content);
         $doc->encoding = 'UTF-8';
 
@@ -166,9 +175,10 @@ class CleanHTML {
      * Clean HTML.
      *
      * @param $html
+     *
      * @return mixed|string
      */
-    function clean($html)
+    public function clean($html)
     {
         $cleaningFunctions = new Methods();
         $doc = $this->createDOMDocumentFromHTML($html);
@@ -185,19 +195,22 @@ class CleanHTML {
         return $this->finalClean($output);
     }
 
-    private function removeLastNewLine($input) {
+    private function removeLastNewLine($input)
+    {
         // Remove the newline character at the end of the HTML if there is one there.
         $len = strlen($input);
-        if (substr($input, $len-1, 1) == "\n")
-            return substr($input, 0, $len-1);
+        if (substr($input, $len - 1, 1) == "\n") {
+            return substr($input, 0, $len - 1);
+        }
 
         return $input;
     }
 
-    static function changeQuotes($input) {
+    public static function changeQuotes($input)
+    {
         $quotes = array(
-                "\xC2\xAB"     => '"', // « (U+00AB) in UTF-8
-                "\xC2\xBB"     => '"', // » (U+00BB) in UTF-8
+                "\xC2\xAB" => '"', // « (U+00AB) in UTF-8
+                "\xC2\xBB" => '"', // » (U+00BB) in UTF-8
                 "\xE2\x80\x98" => "'", // ‘ (U+2018) in UTF-8
                 "\xE2\x80\x99" => "'", // ’ (U+2019) in UTF-8
                 "\xE2\x80\x9A" => "'", // ‚ (U+201A) in UTF-8
@@ -211,16 +224,19 @@ class CleanHTML {
             );
 
         $output = strtr($input, $quotes);
+
         return $output;
     }
 
     /**
      * Custom functions for cleaning out elements that are inside documents that should not be allowed in.
+     *
      * @param DOMDocument $doc
-     * @param bool $first
+     * @param bool        $first
+     *
      * @return mixed|string
      */
-    static function obscureClean(DOMDocument $doc, $first = false)
+    public static function obscureClean(DOMDocument $doc, $first = false)
     {
         $cleaningFunctions = new Methods();
         $doc->encoding = 'UTF-8';
@@ -245,28 +261,30 @@ class CleanHTML {
         return self::exportHTML($doc);
     }
 
-    static function exportHTML(DOMDocument $doc) {
+    public static function exportHTML(DOMDocument $doc)
+    {
         // -- Save the contents. Strip out the added tags from loadHTML()
         $xpath = new DOMXPath($doc);
         $doc->encoding = 'UTF-8';
-        $everything = $xpath->query("body/*"); // retrieves all elements inside body tag
+        $everything = $xpath->query('body/*'); // retrieves all elements inside body tag
         $output = '';
         if ($everything->length > 0) { // check if it retrieved anything in there
             foreach ($everything as $thing) {
-                $output .= $doc->saveXML($thing) . "\n";
+                $output .= $doc->saveXML($thing)."\n";
             }
         }
 
-        $output = str_replace("\xc2\xa0",' ',$output); // Nasty UTF-8 &nbsp;
+        $output = str_replace("\xc2\xa0", ' ', $output); // Nasty UTF-8 &nbsp;
         $output = preg_replace("#(\n\s*){2,}#", "\n", $output); // Replace newlines with one
-        $output = preg_replace("#\s\s+$#", "", $output); // Multi-spaces condensed
+        $output = preg_replace("#\s\s+$#", '', $output); // Multi-spaces condensed
         return $output;
     }
 
     /**
-     * Purify HTML
+     * Purify HTML.
      *
      * @param $input
+     *
      * @return string
      */
     private function purify($input)
@@ -279,12 +297,13 @@ class CleanHTML {
 
     /**
      * @param $input
+     *
      * @return string
      */
     private function finalClean($input)
     {
-        $doc = new DOMDocument;
-        $content = self::$blankHTML . $input;
+        $doc = new DOMDocument();
+        $content = self::$blankHTML.$input;
         @$doc->loadHTML($content);
         $doc->encoding = 'UTF-8';
 

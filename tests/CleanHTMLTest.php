@@ -1,11 +1,13 @@
 <?php
+
 use \timgws\CleanHTML\CleanHTML;
 
-class CleanHTMLTest extends PHPUnit_Framework_TestCase {
+class CleanHTMLTest extends PHPUnit_Framework_TestCase
+{
     private $simpleTest = '<img src="http://google.com">';
 
     /**
-     * Nothing crazy, just a simple test to make sure that the class inits
+     * Nothing crazy, just a simple test to make sure that the class inits.
      */
     public function testInitCleanHTML()
     {
@@ -19,7 +21,7 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
     public function testInitCleanHTMLWithInvalidSettings()
     {
         $cleanhtml = new CleanHTML(array(
-            '_images' => false
+            '_images' => false,
         ));
     }
 
@@ -92,7 +94,8 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
         );
     }
 
-    public function testLinksAllowedIfSet() {
+    public function testLinksAllowedIfSet()
+    {
         $this->doSimpleContentTest(
             '<p><a href="http://www.google.com.au">And no links to Google</code></p>',
             '<p>And no links to Google</p>'
@@ -112,13 +115,15 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
         $this->assertEquals("<p>This is 'a test'</p>", $newContent);
     }
 
-    private function createCleanHTML() {
+    private function createCleanHTML()
+    {
         return new CleanHTML(array(
-            'images' => false
+            'images' => false,
         ));
     }
 
-    public function testPreWithHREF() {
+    public function testPreWithHREF()
+    {
         $output = new CleanHTML();
 
         $newhtml = $output->Clean('<pre href="http://google.com">testing 321</pre>');
@@ -141,8 +146,9 @@ class CleanHTMLTest extends PHPUnit_Framework_TestCase {
     {
         $cleanHTML = new CleanHTML($options);
 
-        if ($expected === null)
+        if ($expected === null) {
             $expected = $actual;
+        }
 
         $output = $cleanHTML->clean($actual);
         $this->assertEquals($output, $expected);
